@@ -7,7 +7,7 @@ class UserBase(BaseModel):
     gender: int
     email: str
     phonenumber: Optional[str] = None
-    avatar: Optional[bytes] = None
+    avatar: Optional[str] = None
     theme: int = 0
     language: int = 0
 
@@ -19,7 +19,7 @@ class UserResponse(UserBase):
 
 class UserCreate(UserBase):
     gender: Optional[int] = None
-    avatar: Optional[bytes] = None
+    avatar: Optional[str] = None
     language: Optional[int] = None
     password: str
 
@@ -29,7 +29,7 @@ class UserUpdate(UserBase):
     email: Optional[str] = None
     phonenumber: Optional[str] = None
     gender: Optional[int] = None
-    avatar: Optional[bytes] = None
+    avatar: Optional[str] = None
     theme: Optional[int] = None
     language: Optional[int] = None
     password: Optional[str] = None

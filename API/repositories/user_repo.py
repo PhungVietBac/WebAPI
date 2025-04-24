@@ -3,7 +3,6 @@ from fastapi import HTTPException
 from schemas.user_schema import UserCreate, UserUpdate
 from repositories import friend_repo
 import uuid
-import base64
 
 # Get all users
 def get_users():
@@ -125,8 +124,6 @@ def create_user(user: UserCreate):
     idUser = ""
     while not idUser or get_user_by("idUser", idUser):
         idUser = f"US{str(uuid.uuid4())[:4]}"
-        
-    avatar_base64 = base64.b64encode(user.avatar).decode("utf-8")
     
     if user.gender not in [0, 1, 2]:
         raise HTTPException(404, "Bad Request")
@@ -139,7 +136,7 @@ def create_user(user: UserCreate):
         "gender": user.gender,
         "email": user.email,
         "phonenumber": user.phonenumber,
-        "avatar": avatar_base64,
+        "avatar": user.avatar,
         "theme": 0,
         "language": 0
     }
@@ -166,11 +163,7 @@ def update_user(idUser: str, user: UserUpdate):
             raise HTTPException(status_code=422, detail="User already exists")
     
     # Update user fields
-    update_data = user.model_dump(exclude_unset=True)
-    
-    if "avatar" in update_data:
-        avatar_base64 = base64.b64encode(user.avatar).decode("utf-8")
-        update_data["avatar"] = avatar_base64
+    update_data = {key: value for key, value in user.model_dump(exclude_unset=True).items()}
     
     response = supabase.table("users").update(update_data).eq("iduser", idUser).execute()
 
