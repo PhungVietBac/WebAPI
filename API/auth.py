@@ -6,7 +6,7 @@ import os
 
 # Secret key
 load_dotenv()
-SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
+SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -25,16 +25,12 @@ def verify_password(plain_password, hashed_password):
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     
-    if "sub" not in to_encode:
-        raise ValueError("`sub` claim is required in token payload")
-    
-    to_encode.setdefault("role", "authenticated")
-    
     utcnow = datetime.now(timezone.utc)
     if expires_delta:
         expire = utcnow + expires_delta
     else:
         expire = utcnow + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SUPABASE_JWT_SECRET, algorithm=ALGORITHM)
+    
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

@@ -1,6 +1,4 @@
 from schemas.ai_recommendation_schema import AIRecCreate
-from repositories import user_repo
-from fastapi import HTTPException
 import uuid
 from supabase_client import supabase
 
@@ -10,23 +8,13 @@ def get_aiRec(skip: int, limit: int):
 
 # Get AI recommendation by
 def get_aiRec_by_id(idAIRec: str):
-    return supabase.table("airecommendations").select("*").eq("idairec", idAIRec).execute().data
+    return supabase.table("airecommendations").select("*").eq("idairec", idAIRec).limit(1).execute().data
     
-def get_aiRec_by_user(idUser: str, skip: int, limit: int):
-    if not user_repo.get_user_by("idUser", idUser):
-        raise HTTPException(404, "User not found")
-    
-    response = supabase.table("airecommendations").select("*").eq("iduser", idUser).range(skip, skip + limit - 1).execute().data
-    
-    if not response:
-        raise HTTPException(404, "AI recommendation not found")
-    return response
+def get_aiRec_by_user(idUser: str, skip: int, limit: int):   
+    return supabase.table("airecommendations").select("*").eq("iduser", idUser).range(skip, skip + limit - 1).execute().data
 
 # Post new AI recommendation
 def create_aiRec(aiRecommendation: AIRecCreate):
-    if not user_repo.get_user_by("idUser", aiRecommendation.iduser):
-        raise HTTPException(404, "User not found")
-    
     idAIRec = ""
     while not idAIRec or get_aiRec_by_id(idAIRec):
         idAIRec = f"AI{str(uuid.uuid4())[:4]}"
@@ -38,14 +26,9 @@ def create_aiRec(aiRecommendation: AIRecCreate):
         "output": ""
     }
     
-    response = supabase.table("airecommendations").insert(db_AIRecommendation).execute()
-
-    return response.data[0]
-
-# Delete AI recommendation
-def delete_aiRec(idAIRec: str):
-    if not get_aiRec_by_id(idAIRec):
-        raise HTTPException(404, "AI recommendation not found")
+    return supabase.table("airecommendations").insert(db_AIRecommendation).execute().data[0]
     
+# Delete AI recommendation
+def delete_aiRec(idAIRec: str):   
     supabase.table("airecommendations").delete().eq("idairec", idAIRec).execute()
     return {"message": "AI recommendation deleted successfully"}

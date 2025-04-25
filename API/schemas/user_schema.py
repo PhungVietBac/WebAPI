@@ -10,9 +10,11 @@ class UserBase(BaseModel):
     avatar: Optional[str] = None
     theme: int = 0
     language: int = 0
+    description: Optional[str] = None
 
 class UserResponse(UserBase):
     iduser: str
+    role: int
     
     class Config:
         from_attributes = True
