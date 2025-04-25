@@ -120,6 +120,13 @@ def update_user(idUser: str, user: UserUpdate):
 
     return response.data[0]
 
+def update_user_avatar(user_id: str, avatar_url: str):
+    result = supabase.table("users").update({
+        "avatar": avatar_url
+    }).eq("iduser", user_id).execute()
+    
+    return result.data[0]
+
 # Delete a user
 def delete_user(idUser: str):
     supabase.table("users").delete().eq("iduser", idUser).execute()

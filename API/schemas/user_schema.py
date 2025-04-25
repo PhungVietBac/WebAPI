@@ -1,15 +1,15 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 class UserBase(BaseModel):
-    name: str
+    name: Optional[str] = None
     username: str
-    gender: int
-    email: str
+    gender: Optional[int] = None
+    email: Optional[EmailStr] = None
     phonenumber: Optional[str] = None
     avatar: Optional[str] = None
-    theme: int = 0
-    language: int = 0
+    theme: Optional[int] = 0
+    language: Optional[int] = 0
     description: Optional[str] = None
 
 class UserResponse(UserBase):
@@ -28,7 +28,7 @@ class UserCreate(UserBase):
 class UserUpdate(UserBase):
     name: Optional[str] = None
     username: Optional[str] = None
-    email: Optional[str] = None
+    email: Optional[EmailStr] = None
     phonenumber: Optional[str] = None
     gender: Optional[int] = None
     avatar: Optional[str] = None

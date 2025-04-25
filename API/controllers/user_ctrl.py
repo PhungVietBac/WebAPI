@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from schemas import user_schema, trip_schema, booking_schema, ai_recommendation_schema
 from repositories import user_repo, trip_repo, friend_repo, booking_repo
 from controllers.auth_ctrl import require_role, assert_owner_or_admin
+from services.storage_service import upload_avatar, delete_old_avatar
 
 router = APIRouter()
 
@@ -131,6 +132,8 @@ def create_user(user: user_schema.UserCreate, current_user = Depends(require_rol
     
     return user_repo.create_user(user=user)
 
+@router.post("/users/ava")
+
 # Update a user
 @router.put("/users/{idUser}", response_model=user_schema.UserResponse)
 def update_user(idUser: str, user: user_schema.UserUpdate, current_user = Depends(require_role([0, 1]))):
@@ -146,6 +149,22 @@ def update_user(idUser: str, user: user_schema.UserUpdate, current_user = Depend
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
         
     return user_repo.update_user(idUser=idUser, user=user)
+
+@router.patch("/users/{idUser}/avatar")
+async def change_avatar(idUser: str, file: UploadFile = File(...), current_user = Depends(require_role([0, 1]))):
+    assert_owner_or_admin(current_user, idUser)
+    
+    user = user_repo.get_user_by_id(idUser)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    try:
+        delete_old_avatar(user[0]["avatar"])
+        publicUrl = await upload_avatar(file)
+        user = user_repo.update_user_avatar(idUser, publicUrl)
+        return {"message": "Avatar updated", "avatar_url": publicUrl, "user": user}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 # Delete a user
 @router.delete("/users/{idUser}", response_model=dict[str, str])
