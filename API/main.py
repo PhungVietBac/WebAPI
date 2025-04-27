@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from controllers import review_ctrl, trip_ctrl, trip_member_ctrl, user_ctrl, auth_ctrl, booking_ctrl, notification_ctrl, friend_ctrl, ai_recommendation_ctrl, detail_information_ctrl, place_ctrl, detail_booking_ctrl, place_image_ctrl, place_review_ctrl
+from controllers import review_ctrl, trip_ctrl, trip_member_ctrl, user_ctrl, auth_ctrl, booking_ctrl, notification_ctrl, friend_ctrl, ai_recommendation_ctrl, detail_information_ctrl, place_ctrl, detail_booking_ctrl, place_image_ctrl, place_review_ctrl, proxy_image
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -11,6 +11,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+proxy_image.start_cache_cleaner()
 
 app.include_router(auth_ctrl.router, prefix="/api/v1", tags=["auth"])
 app.include_router(user_ctrl.router, prefix="/api/v1", tags=["users"])
@@ -26,3 +28,4 @@ app.include_router(detail_booking_ctrl.router, prefix="/api/v1", tags=["detail_b
 app.include_router(ai_recommendation_ctrl.router, prefix="/api/v1", tags=["ai_recommendations"])
 app.include_router(place_image_ctrl.router, prefix="/api/v1", tags=["place_images"])
 app.include_router(place_review_ctrl.router, prefix="/api/v1", tags=["place_reviews"])
+app.include_router(proxy_image.router, prefix="/api/v1", tags=["proxy_image"])
