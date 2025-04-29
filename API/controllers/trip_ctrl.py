@@ -3,6 +3,7 @@ from schemas import trip_schema, user_schema, place_schema
 from repositories import trip_repo, user_repo, place_repo
 from controllers.auth_ctrl import require_role
 from datetime import datetime
+from controllers.place_ctrl import parse_place
 
 router = APIRouter()
 
@@ -103,7 +104,7 @@ def get_places_of_trip(idTrip: str = None, current_user = Depends(require_role([
     if not place_ids:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No places found for this trip")
     
-    return [place_repo.get_place_by_id(place_id) for place_id in place_ids]
+    return [parse_place(place_repo.get_place_by_id(place_id)[0]) for place_id in place_ids]
 
 # Update a trip
 @router.put("/trips/{idTrip}", response_model=trip_schema.TripResponse)

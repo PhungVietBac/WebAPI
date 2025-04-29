@@ -1,6 +1,6 @@
+from supabase_client import supabase
 from schemas.place_schema import PlaceCreate, PlaceUpdate
 import uuid
-from supabase_client import supabase
 
 def get_places(skip: int, limit: int):
     return supabase.table("places").select("*").range(skip, skip + limit - 1).execute().data
@@ -55,11 +55,16 @@ def search_places(query: str, place_type: int = None, min_rating: int = None):
 
     return q.execute().data
 
+def get_place_by_lat_lon(loc: str):
+    return supabase.table("places").select("*").eq("loc", loc).execute().data
+
 # Post place
 def post_place(place: PlaceCreate):
     idPlace = ""
     while not idPlace or get_place_by_id(idPlace):
         idPlace = f"PL{str(uuid.uuid4())[:4]}"
+        
+    point_wkt = f"SRID=4326;POINT({place.lon} {place.lat})"
     
     new_place = {
         "idplace": idPlace,
@@ -70,7 +75,8 @@ def post_place(place: PlaceCreate):
         "address": place.address,
         "description": place.description,
         "rating": place.rating,
-        "type": place.type
+        "type": place.type,
+        "loc": point_wkt
     }
     
     response = supabase.table("places").insert(new_place).execute()
@@ -78,9 +84,13 @@ def post_place(place: PlaceCreate):
 
 # Update place
 def update_place(id: str, place: PlaceUpdate):
-    update_data = {key: value for key, value in place.model_dump(exclude_unset=True).items()}
+    update_data = place.model_dump(exclude={"lat", "lon"}, exclude_unset=True)
+    
+    if place.lat and place.lon:
+        update_data["loc"] = f"SRID=4326;POINT({place.lon} {place.lat})"
     
     response = supabase.table("places").update(update_data).eq("idplace", id).execute()
+    print(response)
     return response.data[0]
 
 def delete_place(idPlace: str):

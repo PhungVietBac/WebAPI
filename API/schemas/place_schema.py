@@ -5,11 +5,13 @@ class PlaceBase(BaseModel):
     name: str
     country: str
     city: str
-    province: str
+    province: Optional[str] = None
     address: str
     description: str
     rating: float
     type: int
+    lat: float
+    lon: float
 
 class PlaceResponse(PlaceBase):
     idplace: str

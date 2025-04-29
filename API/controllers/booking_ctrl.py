@@ -5,6 +5,7 @@ from schemas.place_schema import PlaceResponse
 from repositories import booking_repo, user_repo, place_repo
 from controllers.auth_ctrl import require_role
 from datetime import datetime
+from controllers.place_ctrl import parse_place
 
 router = APIRouter()
 
@@ -77,7 +78,7 @@ def get_place_by_booking(idBooking: str, current_user = Depends(require_role([0,
     
     place_id = booking_repo.get_place_id_of_booking(idBooking)
     
-    return place_repo.get_place_by_id(place_id)[0]
+    return parse_place(place_repo.get_place_by_id(place_id)[0])
 
 @router.post("/bookings/", response_model=BookingResponse)
 def create_new_booking(booking: BookingCreate, current_user = Depends(require_role([0, 1]))):
