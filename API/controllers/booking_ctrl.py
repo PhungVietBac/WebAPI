@@ -30,7 +30,7 @@ def get_booking_by_id(idBooking: str, current_user = Depends(require_role([0, 1]
     
     return booking[0]
 
-@router.get("/bookings/{select}", response_model=list[BookingResponse])
+@router.get("/bookings/{select}", response_model=list[BookingResponse], summary="Get booking by idPlace, date, status")
 def get_booking_by(select: str, lookup: str, current_user = Depends(require_role([0, 1]))):
     if select == "idPlace":
         bookings = booking_repo.get_bookings_by_idplace(lookup)

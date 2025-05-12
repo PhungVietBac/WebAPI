@@ -11,7 +11,7 @@ def get_trip_members(current_user = Depends(require_role([0]))):
     return trip_member_repo.get_trip_members()
 
 # Get a trip_member by
-@router.get("/trip_members/{select}", response_model=list[trip_member_schema.TripMemberResponse])
+@router.get("/trip_members/{select}", response_model=list[trip_member_schema.TripMemberResponse], summary="Get trip_member by idUser, idTrip")
 def get_trip_member_by(select: str, lookup: str, current_user = Depends(require_role([0]))):
     if select == "idUser":
         trip_member = trip_member_repo.get_trip_member_by_user(lookup)

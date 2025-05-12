@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from schemas import place_image_schema
 from repositories import place_image_repo, place_repo
 from controllers.auth_ctrl import require_role
+import random
 
 router = APIRouter()
 
@@ -24,6 +25,15 @@ def get_place_image_by_place(idPlace: str, current_user = Depends(require_role([
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place image not found")
     
     return image
+
+@router.get("/placeimages/{idPLace}/random", response_model=place_image_schema.PlaceImageResponse)
+def get_random_place_image_by_place(idPlace: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
+    images = place_image_repo.get_place_image_by_idPlace(idPlace, skip, limit)
+    if not images:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place image not found")
+    
+    idx = random.randint(0, len(images) - 1)
+    return images[idx]
 
 @router.post("/placeimages/", response_model=place_image_schema.PlaceImageResponse)
 def create_place_image(placeImage: place_image_schema.PlaceImageCreate, current_user = Depends(require_role([0]))):

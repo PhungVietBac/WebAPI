@@ -12,7 +12,7 @@ def get_users(current_user = Depends(require_role([0, 1]))):
     return user_repo.get_users()
 
 # Get a user by
-@router.get("/users/{select}", response_model=user_schema.UserResponse)
+@router.get("/users/{select}", response_model=user_schema.UserResponse, summary="Get user by idUser, username, email, phoneNumber")
 def get_user_by(select: str, lookup: str, current_user = Depends(require_role([0, 1]))):
     if select == "idUser":
         user = user_repo.get_user_by_id(lookup)
@@ -131,8 +131,6 @@ def create_user(user: user_schema.UserCreate, current_user = Depends(require_rol
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid gender")
     
     return user_repo.create_user(user=user)
-
-@router.post("/users/ava")
 
 # Update a user
 @router.put("/users/{idUser}", response_model=user_schema.UserResponse)

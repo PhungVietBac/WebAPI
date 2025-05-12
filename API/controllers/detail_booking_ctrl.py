@@ -9,11 +9,11 @@ router = APIRouter()
 def get_detail_bookings(current_user = Depends(require_role([0]))):
     return detail_booking_repo.get_detail_bookings()
 
-@router.get("detail_bookings/{select}", response_model=list[detail_booking_schema.DetailBookingResponse])
+@router.get("detail_bookings/{select}", response_model=list[detail_booking_schema.DetailBookingResponse], summary="Get detail booking by idUser, idBooking")
 def get_detail_booking_by(select: str, lookup: str, current_user = Depends(require_role([0]))):
-    if select == "iduser":
+    if select == "idUser":
         detail_booking = detail_booking_repo.get_detail_booking_by_user(lookup)
-    elif select == "idbooking":
+    elif select == "idBooking":
         detail_booking = detail_booking_repo.get_detail_booking_by_booking(lookup)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid selection criteria")

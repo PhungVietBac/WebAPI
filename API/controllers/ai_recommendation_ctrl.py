@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, status
-from schemas import ai_recommendation_schema
-from repositories import ai_recommendation_repo, user_repo
+from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
+from schemas import ai_recommendation_schema, result, place_schema, place_image_schema
+from repositories import ai_recommendation_repo, user_repo, place_repo, place_image_repo
 from controllers.auth_ctrl import require_role, assert_owner_or_admin
+from gemini_client import get_trip_plan
+from supabase_client import supabase
 
 router = APIRouter()
 
@@ -52,3 +54,83 @@ def delete_ai_rec(idAIRec: str, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, response[0]["iduser"])
     
     return ai_recommendation_repo.delete_aiRec(idAIRec)
+
+@router.post("/ai_recs/generate-trip", response_model=result.TripPlan)
+async def generate_trip(location: str, time: str, days: int, people: int, background_tasks: BackgroundTasks,  transportation: str = None, current_user = Depends(require_role([0, 1]))):
+
+    prompt = f"Lên kế hoạch du lịch {days} ngày tại {location} cho {people} người bắt đầu từ ngày {time}"
+    if not transportation: 
+        prompt += f" bằng {transportation}"
+    prompt += ", yêu cầu đường link hình ảnh chính xác, server còn tồn tại và có thể dùng hoặc tải hình được."
+    
+    try:
+        trip_plan = get_trip_plan(prompt)
+        background_tasks.add_task(save_place, trip_plan)
+        return trip_plan
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Gemini API error: {str(e)}")
+    
+async def save_place(trip: result.TripPlan):
+    for day in trip.parameters.days:
+        for activity in day.activities:
+            lon, lat = activity.lon, activity.lat
+            dup_resp = supabase.rpc(
+                "exists_within_radius",
+                {"lon": lon, "lat": lat, "radius": 50}
+            ).execute()
+            
+            if dup_resp.data:
+                print(f"Skip duplicate: {activity.namePlace}")  
+                continue
+            
+            place = place_schema.PlaceCreate(
+                name=activity.namePlace,
+                country="Việt Nam",
+                city=activity.city,
+                province=activity.province,
+                address=activity.address,
+                description=activity.description,
+                rating=activity.rating,
+                type=None,
+                lat=lat,
+                lon=lon
+            )
+            res = place_repo.post_place(place)
+            save_place_image(res['idplace'], activity.namePlace)
+            
+def save_place_image(idplace, name):
+    images = find_images(name)
+    if images:
+        for image in images: 
+            placeImage = place_image_schema.PlaceImageCreate(
+                idplace=idplace,
+                image=image
+            )
+            place_image_repo.create_place_image(placeImage)
+    
+def find_images(query: str):
+    import requests
+    res = []
+    url = f'https://api.openverse.engineering/v1/images?q={query}&page=1&format=json'
+    
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            count = len(data['results'])
+            if 'results' in data and count > 0:
+                idx = 0
+                while idx < count:
+                    res.append(data['results'][idx]['url'])
+                    idx = idx + 1
+                    if len(res) == 5:
+                        break
+                return res
+            else:
+                print("No result for this keyword.")
+        else:
+            print(f"Fail request: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error request API: {e}")
+    except ValueError as e:
+        print(f"Error parse JSON: {e}")

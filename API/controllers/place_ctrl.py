@@ -72,7 +72,7 @@ def get_bookings_by_place(idPlace: str, current_user = Depends(require_role([0])
     
     return response
 
-@router.get("/places/{select}", response_model=list[place_schema.PlaceResponse])
+@router.get("/places/{select}", response_model=list[place_schema.PlaceResponse], summary="Get place by name, country, city, province, type, rating")
 def get_place_by(select: str, lookup: str, current_user = Depends(require_role([0, 1]))):
     if select == "name":
         places = place_repo.get_place_by_name(lookup)

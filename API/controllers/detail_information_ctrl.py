@@ -23,7 +23,7 @@ def get_detail_by_id(idDetail: str, current_user = Depends(require_role([0, 1]))
     
     return detail[0]
 
-@router.get("/details/{select}", response_model=list[detail_information_schema.DetailResponse])
+@router.get("/details/{select}", response_model=list[detail_information_schema.DetailResponse], summary="Get detail information by idPlace, idTrip, startTime, endTime")
 def get_detail_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
     if select == "idPlace":
         details = detail_information_repo.get_detail_by_idPlace(lookup, skip, limit)

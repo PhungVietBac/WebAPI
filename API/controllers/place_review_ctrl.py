@@ -17,7 +17,7 @@ def get_place_review_by_id(idReview: str, current_user = Depends(require_role([0
     
     return review[0]
 
-@router.get("/placereviews/{select}", response_model=list[place_review_schema.PlaceReviewResponse])
+@router.get("/placereviews/{select}", response_model=list[place_review_schema.PlaceReviewResponse], summary="Get place review by name, idPlace, rating")
 def get_place_review_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
     if select == "name":
         review = place_review_repo.get_place_review_by_name(lookup, skip, limit)

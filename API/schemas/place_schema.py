@@ -9,7 +9,7 @@ class PlaceBase(BaseModel):
     address: str
     description: str
     rating: float
-    type: int
+    type: Optional[int] = None
     lat: float
     lon: float
 

@@ -21,7 +21,7 @@ def get_review_by_id(idReview: str, current_user = Depends(require_role([0, 1]))
     return review[0]
 
 # Get a review by
-@router.get("/reviews/{select}", response_model=list[review_schema.ReviewResponse])
+@router.get("/reviews/{select}", response_model=list[review_schema.ReviewResponse], summary="Get review by idUser, idTrip, rating")
 def get_review_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
     if select == "idUser":
         review = review_repo.get_review_by_user(lookup, skip, limit)

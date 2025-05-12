@@ -34,7 +34,7 @@ def get_trip_by_id(idTrip: str, current_user = Depends(require_role([0, 1]))):
     return trip[0]
 
 # Get a trip by
-@router.get("/trips/{select}", response_model=list[trip_schema.TripResponse])
+@router.get("/trips/{select}", response_model=list[trip_schema.TripResponse], summary="Get trip by startDate, endDate")
 def get_trip_by(select: str, lookup: str, current_user = Depends(require_role([0, 1]))):
     if select == "startDate":
         try:
