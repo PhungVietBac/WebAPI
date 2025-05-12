@@ -56,12 +56,11 @@ def delete_ai_rec(idAIRec: str, current_user = Depends(require_role([0, 1]))):
     return ai_recommendation_repo.delete_aiRec(idAIRec)
 
 @router.post("/ai_recs/generate-trip", response_model=result.TripPlan)
-async def generate_trip(location: str, time: str, days: int, people: int, background_tasks: BackgroundTasks,  transportation: str = None, current_user = Depends(require_role([0, 1]))):
+async def generate_trip(location: str, time: str, days: int, people: int, money: int, background_tasks: BackgroundTasks,  transportation: str = None, current_user = Depends(require_role([0, 1]))):
 
-    prompt = f"Lên kế hoạch du lịch {days} ngày tại {location} cho {people} người bắt đầu từ ngày {time}"
+    prompt = f"Lên kế hoạch du lịch {days} ngày tại {location} cho {people} người bắt đầu từ ngày {time} với ngân sách là {money} đồng"
     if not transportation: 
         prompt += f" bằng {transportation}"
-    prompt += ", yêu cầu đường link hình ảnh chính xác, server còn tồn tại và có thể dùng hoặc tải hình được."
     
     try:
         trip_plan = get_trip_plan(prompt)
