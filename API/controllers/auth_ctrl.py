@@ -70,4 +70,8 @@ def require_role(roles: list[int]):
     
 def assert_owner_or_admin(user, target_id):
     if user["role"] != 0 and user["iduser"] != target_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not permitted")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not permitted")   
+
+@router.get("/me")
+def get_me(current_user = Depends(get_current_user)):
+    return {"iduser": current_user["iduser"], "role": current_user["role"]}
