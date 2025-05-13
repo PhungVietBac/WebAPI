@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.responses import JSONResponse
 from datetime import timedelta
 from jose import jwt
 import auth
@@ -8,9 +9,6 @@ from repositories.user_repo import get_user_by_id
 import uuid
 
 router = APIRouter()
-
-# Config security with OAuth2
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
 
 # API register user
 @router.post("/register")
@@ -41,23 +39,42 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
     access_token = auth.create_access_token({"sub": user.data[0]["iduser"], "role": user.data[0]["role"]}, timedelta(minutes=30))
-    return {"access_token": access_token, "token_type": "bearer"}
-
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
     
+    response = JSONResponse(content={"message": "Login successful"})
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="strict",
+        max_age=1800,
+        path="/"
+    )
+    return response
+
+@router.post("/logout")
+def logout():
+    response = JSONResponse(content={"message": "Logged out"})
+    response.delete_cookie("access_token", path="/")
+    return response
+
+def get_current_user(request: Request):
+    token = request.cookies.get("access_token")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+        )
+
     try:
         payload = jwt.decode(token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
         iduser: str = payload.get("sub")
         role: int = payload.get("role")
         if not iduser or role is None:
-            raise credentials_exception
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     except jwt.JWTError:
-        raise credentials_exception
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token decode failed")
 
     return {"iduser": iduser, "role": role}
 
@@ -71,7 +88,3 @@ def require_role(roles: list[int]):
 def assert_owner_or_admin(user, target_id):
     if user["role"] != 0 and user["iduser"] != target_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not permitted")   
-
-@router.get("/me")
-def get_me(current_user = Depends(get_current_user)):
-    return {"iduser": current_user["iduser"], "role": current_user["role"]}
