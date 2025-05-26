@@ -35,7 +35,7 @@ def get_detail_booking_by_user_booking(idUser: str, idBooking: str, current_user
 def create_detail_booking(detail_booking: detail_booking_schema.DetailBookingCreate, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, detail_booking.iduser)
     # Check if the user exists
-    if not user_repo.get_user_by("idUser", detail_booking.iduser):
+    if not user_repo.get_user_by_id(detail_booking.iduser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     # Check if the booking exists
     if not booking_repo.get_booking_by_id(detail_booking.idbooking):
@@ -49,8 +49,8 @@ def create_detail_booking(detail_booking: detail_booking_schema.DetailBookingCre
 @router.delete("/detail_bookings", response_model=dict[str, str])
 def delete_detail_booking(idUser: str, idBooking: str, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, idUser)
-    
-    if not user_repo.get_user_by("idUser", idUser):
+
+    if not user_repo.get_user_by_id(idUser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     if not booking_repo.get_booking_by_id(idBooking):

@@ -40,7 +40,7 @@ def create_trip_member(trip_member: trip_member_schema.TripMemberCreate, current
     assert_owner_or_admin(current_user, trip_member.iduser)
     
     # Check if the user exists
-    if not user_repo.get_user_by("idUser", trip_member.iduser):
+    if not user_repo.get_user_by_id(trip_member.iduser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     # Check if the trip exists
     if not trip_repo.get_trip_by_id(trip_member.idtrip):
@@ -57,7 +57,7 @@ def delete_trip_member(idUser: str, idTrip: str, current_user = Depends(require_
     assert_owner_or_admin(current_user, idUser)
     
     # Check if the user exists
-    if not user_repo.get_user_by("idUser", idUser):
+    if not user_repo.get_user_by_id(idUser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     # Check if the trip exists
     if not trip_repo.get_trip_by_id(idTrip):

@@ -62,7 +62,7 @@ def delete_place_review(idReview: str, current_user = Depends(require_role([0, 1
     if not review:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place review not found")
     
-    user = user_repo.get_user_by("idUser", current_user["iduser"])
+    user = user_repo.get_user_by_id(current_user["iduser"])
     
     if current_user["role"] != 0 or user[0]["username"] != review[0]["name"]:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not permitted")

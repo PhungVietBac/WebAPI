@@ -91,8 +91,8 @@ def get_users_reviewed_trip(idTrip: str = None, current_user = Depends(require_r
     
     if not user_ids:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No users reviewed this trip")
-    
-    return [user_repo.get_user_by("idUser", user_id)[0] for user_id in user_ids]
+
+    return [user_repo.get_user_by_id(user_id)[0] for user_id in user_ids]
 
 @router.get("/trips/{idTrip}/places/", response_model=list[place_schema.PlaceResponse])
 def get_places_of_trip(idTrip: str = None, current_user = Depends(require_role([0, 1]))):
