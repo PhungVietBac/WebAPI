@@ -11,7 +11,7 @@ def get_all_friends(current_user = Depends(require_role([0]))):
 
 @router.get("/friends/{user_id}", response_model=list[friend_schema.FriendResponse])
 def get_friends(user_id: str, current_user = Depends(require_role([0, 1]))):
-    if not user_repo.get_user_by("idUser", user_id):
+    if not user_repo.get_user_by_id(user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found") 
     
     response = friend_repo.get_friends_by_user(user_id)
@@ -26,11 +26,11 @@ def create_new_friend(friend: friend_schema.FriendCreate, current_user = Depends
     assert_owner_or_admin(current_user, friend.idself)
     
     # Kiểm tra idSelf
-    if not user_repo.get_user_by("idUser", friend.idSelf):
+    if not user_repo.get_user_by_id(friend.idSelf):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idSelf} not found")
 
     # Kiểm tra idFriend
-    if not user_repo.get_user_by("idUser", friend.idFriend):
+    if not user_repo.get_user_by_id(friend.idFriend):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idFriend} not found")
 
     # Kiểm tra không cho phép kết bạn với chính mình
@@ -48,11 +48,11 @@ def update_friend(friend: friend_schema.FriendUpdate, current_user = Depends(req
     assert_owner_or_admin(current_user, friend.idself)
     
     # Kiểm tra idSelf
-    if not user_repo.get_user_by("idUser", friend.idSelf):
+    if not user_repo.get_user_by_id(friend.idSelf):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idSelf} not found")
 
     # Kiểm tra idFriend
-    if not user_repo.get_user_by("idUser", friend.idFriend):
+    if not user_repo.get_user_by_id(friend.idFriend):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idFriend} not found")
 
     # Kiểm tra không cho phép kết bạn với chính mình
@@ -71,11 +71,11 @@ def delete_friend(id_self: str, id_friend: str, current_user = Depends(require_r
     assert_owner_or_admin(current_user, id_self)
     
     # Kiểm tra idSelf
-    if not user_repo.get_user_by("idUser", id_self):
+    if not user_repo.get_user_by_id(id_self):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {id_self} not found")
 
     # Kiểm tra idFriend
-    if not user_repo.get_user_by("idUser", id_friend):
+    if not user_repo.get_user_by_id(id_friend):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {id_friend} not found")
     
     relation = friend_repo.is_relation_exists(id_self, id_friend)

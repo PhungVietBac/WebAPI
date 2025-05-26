@@ -26,8 +26,8 @@ def get_notification_by_id(idNotf: str, current_user = Depends(require_role([0, 
 @router.get("/notifications/{idUser}", response_model=list[notification_schema.NotificationResponse])
 def get_notification_by_user(idUser: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
     assert_owner_or_admin(current_user, idUser)
-    
-    if not user_repo.get_user_by("idUser", idUser):
+
+    if not user_repo.get_user_by_id(idUser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     response = notification_repo.get_notification_by_user(idUser, skip, limit)
@@ -45,8 +45,8 @@ def get_unread_notifications(
     current_user = Depends(require_role([0, 1]))
 ):
     assert_owner_or_admin(current_user, user_id)
-    
-    if not user_repo.get_user_by("idUser", user_id):
+
+    if not user_repo.get_user_by_id(user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     """Get all unread notifications for a specific user"""
@@ -60,7 +60,7 @@ def get_unread_notifications(
 # Post a new notification
 @router.post("/notifications/", response_model=notification_schema.NotificationResponse)
 def create_notification(notification: notification_schema.NotificationCreate, current_user = Depends(require_role([0]))):
-    if not user_repo.get_user_by("idUser", notification.iduser):
+    if not user_repo.get_user_by_id(notification.iduser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     return notification_repo.create_notification(notification)
@@ -80,8 +80,8 @@ def update_notification(idNotify: str, notification: notification_schema.Notific
 @router.put("/notifications/mark-all/{idUser}", response_model=list[notification_schema.NotificationResponse])
 def mark_all_notifications_as_read(idUser: str, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, idUser)
-    
-    if not user_repo.get_user_by("idUser", idUser):
+
+    if not user_repo.get_user_by_id(idUser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     if not notification_repo.is_user_has_notification(idUser):
@@ -104,8 +104,8 @@ def delete_notification(idNotify: str, current_user = Depends(require_role([0, 1
 @router.delete("/notifications/delete-all/{idUser}", response_model=dict[str, str])
 def delete_all_notifications_by_user(idUser: str, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, idUser)
-    
-    if not user_repo.get_user_by("idUser", idUser):
+
+    if not user_repo.get_user_by_id(idUser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     if not notification_repo.is_user_has_notification(idUser):

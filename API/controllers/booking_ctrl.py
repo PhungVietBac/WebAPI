@@ -66,8 +66,8 @@ def get_owners_of_booking(idBooking: str, current_user = Depends(require_role([0
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Booking not found")
     
     user_ids = assert_owner_or_admin_on_booking(idBooking, current_user)
-    
-    return [user_repo.get_user_by("idUser", user_id)[0] for user_id in user_ids]
+
+    return [user_repo.get_user_by_id(user_id)[0] for user_id in user_ids]
 
 @router.get("/bookings/{idBooking}/places/", response_model=PlaceResponse)
 def get_place_by_booking(idBooking: str, current_user = Depends(require_role([0, 1]))):

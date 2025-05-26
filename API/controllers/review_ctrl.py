@@ -55,8 +55,8 @@ def get_best_reviews(current_user = Depends(require_role([0, 1]))):
 def create_review(review: review_schema.ReviewCreate, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, review.iduser)
     assert_owner_or_admin_on_trip(review.idtrip, current_user)
-    
-    if not user_repo.get_user_by("idUser", review.iduser):
+
+    if not user_repo.get_user_by_id(review.iduser):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     if not trip_repo.get_trip_by_id(review.idtrip):
