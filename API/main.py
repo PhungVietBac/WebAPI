@@ -4,25 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["http://localhost:3000"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-@app.middleware("http")
-async def echo_localhost_cors(request, call_next):
-    origin = request.headers.get("origin")
-    response = await call_next(request)
-    if origin and origin.startswith("http://localhost"):
-        response.headers["Access-Control-Allow-Origin"] = origin
-        response.headers["Access-Control-Allow-Credentials"] = "true"
-        response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS,PUT,DELETE"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
-    return response
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 proxy_image.start_cache_cleaner()
 
