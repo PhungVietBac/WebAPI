@@ -14,3 +14,15 @@ class AIRecCreate(AIRecommendationBase):
 
 class AIRecUpdate(AIRecommendationBase):
     pass
+
+class AIRequest(BaseModel):
+    departure: str
+    destination: str
+    time: str
+    days: int
+    people: int
+    money: int
+    transportation: str = None
+    travelStyle: str = None
+    interests: list[str] = None
+    accommodation: str = None

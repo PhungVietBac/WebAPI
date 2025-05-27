@@ -56,12 +56,17 @@ def delete_ai_rec(idAIRec: str, current_user = Depends(require_role([0, 1]))):
     return ai_recommendation_repo.delete_aiRec(idAIRec)
 
 @router.post("/ai_recs/generate-trip", response_model=result.TripPlan)
-async def generate_trip(location: str, time: str, days: int, people: int, money: int, background_tasks: BackgroundTasks,  transportation: str = None, current_user = Depends(require_role([0, 1]))):
+async def generate_trip(ai_req: ai_recommendation_schema.AIRequest, background_tasks: BackgroundTasks, current_user = Depends(require_role([0, 1]))):
 
-    prompt = f"Lên kế hoạch du lịch {days} ngày tại {location} cho {people} người bắt đầu từ ngày {time} với ngân sách là {money} đồng"
-    if not transportation: 
-        prompt += f" bằng {transportation}"
-    
+    prompt = f"Lên kế hoạch du lịch {ai_req.days} ngày từ {ai_req.departure} đến {ai_req.destination} cho {ai_req.people} người bắt đầu từ ngày {ai_req.time} với ngân sách là {ai_req.money} đồng"
+    if not ai_req.transportation: 
+        prompt += f" bằng {ai_req.transportation},"
+    if ai_req.travelStyle:
+        prompt += f" với phong cách du lịch {ai_req.travelStyle},"
+    if ai_req.interests:
+        prompt += f" với sở thích {', '.join(ai_req.interests)},"
+    if ai_req.accommodation:
+        prompt += f" với chỗ ở {ai_req.accommodation},"
     try:
         trip_plan = get_trip_plan(prompt)
         background_tasks.add_task(save_place, trip_plan)
