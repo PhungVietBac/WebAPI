@@ -40,7 +40,7 @@ def get_trips_of_user(idUser: str, current_user = Depends(require_role([0, 1])))
     if not trip_ids:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User hasn't any trip")
     
-    return [trip_repo.get_trip_by_id(trip_id) for trip_id in trip_ids]
+    return [trip_repo.get_trip_by_id(trip_id)[0] for trip_id in trip_ids]
 
 @router.get("/users/{idUser}/friends", response_model=list[user_schema.UserResponse])
 def get_friends_of_user(idUser: str, current_user = Depends(require_role([0, 1]))):
@@ -65,7 +65,7 @@ def get_bookings_of_user(idUser: str, current_user = Depends(require_role([0, 1]
     if not booking_ids:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User hasn't ever booked")
     
-    return [booking_repo.get_booking_by_id(booking_id) for booking_id in booking_ids]
+    return [booking_repo.get_booking_by_id(booking_id)[0] for booking_id in booking_ids]
 
 @router.get("/users/{idUser}/friend_requests_of", response_model=list[user_schema.UserResponse])
 def get_friend_requests_of_user(idUser: str, current_user = Depends(require_role([0, 1]))):
@@ -79,7 +79,7 @@ def get_friend_requests_of_user(idUser: str, current_user = Depends(require_role
     if not friend_ids:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User hasn't send any friend request")
     
-    return [user_repo.get_user_by_id(friend_id) for friend_id in friend_ids]
+    return [user_repo.get_user_by_id(friend_id)[0] for friend_id in friend_ids]
 
 @router.get("/users/{idUser}/friend_requests_to", response_model=list[user_schema.UserResponse])
 def get_friend_requests_to_user(idUser: str, current_user = Depends(require_role([0, 1]))):
@@ -93,7 +93,7 @@ def get_friend_requests_to_user(idUser: str, current_user = Depends(require_role
     if not friend_ids:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User hasn't received any friend request")
     
-    return [user_repo.get_user_by_id(friend_id) for friend_id in friend_ids]
+    return [user_repo.get_user_by_id(friend_id)[0] for friend_id in friend_ids]
 
 @router.get("/users/{idUser}/reviewed_trips", response_model=list[trip_schema.TripResponse])
 def get_reviewed_trips_of_user(idUser: str, current_user = Depends(require_role([0, 1]))):
@@ -105,7 +105,7 @@ def get_reviewed_trips_of_user(idUser: str, current_user = Depends(require_role(
     if not trip_ids:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User hasn't reviewed any trip")
     
-    return [trip_repo.get_trip_by_id(trip_id) for trip_id in trip_ids]
+    return [trip_repo.get_trip_by_id(trip_id)[0] for trip_id in trip_ids]
 
 @router.get("/users/{idUser}/ai_recs", response_model=list[ai_recommendation_schema.AIRecResponse])
 def get_ai_recs_of_user(idUser: str, current_user = Depends(require_role([0, 1]))):
