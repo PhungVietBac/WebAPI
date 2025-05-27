@@ -26,15 +26,15 @@ def create_new_friend(friend: friend_schema.FriendCreate, current_user = Depends
     assert_owner_or_admin(current_user, friend.idself)
     
     # Kiểm tra idSelf
-    if not user_repo.get_user_by_id(friend.idSelf):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idSelf} not found")
+    if not user_repo.get_user_by_id(friend.idself):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idself} not found")
 
     # Kiểm tra idFriend
-    if not user_repo.get_user_by_id(friend.idFriend):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idFriend} not found")
+    if not user_repo.get_user_by_id(friend.idfriend):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idfriend} not found")
 
     # Kiểm tra không cho phép kết bạn với chính mình
-    if friend.idSelf == friend.idFriend:
+    if friend.idself == friend.idfriend:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot add yourself as a friend")
     
     if friend_repo.is_relation_exists(friend.idself, friend.idfriend):
@@ -48,15 +48,15 @@ def update_friend(friend: friend_schema.FriendUpdate, current_user = Depends(req
     assert_owner_or_admin(current_user, friend.idself)
     
     # Kiểm tra idSelf
-    if not user_repo.get_user_by_id(friend.idSelf):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idSelf} not found")
+    if not user_repo.get_user_by_id(friend.idself):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idself} not found")
 
     # Kiểm tra idFriend
-    if not user_repo.get_user_by_id(friend.idFriend):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idFriend} not found")
+    if not user_repo.get_user_by_id(friend.idfriend):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User {friend.idfriend} not found")
 
     # Kiểm tra không cho phép kết bạn với chính mình
-    if friend.idSelf == friend.idFriend:
+    if friend.idself == friend.idfriend:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot add yourself as a friend")
     
     relation = friend_repo.is_relation_exists(friend.idself, friend.idfriend)
