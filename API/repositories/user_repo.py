@@ -2,6 +2,20 @@ from supabase_client import supabase
 from schemas.user_schema import UserCreate, UserUpdate
 import uuid
 
+def get_conversations_by_user(id: str, page: int = 1, limit: int = 20, includeArchived: bool = True, search: str = None):
+    offset = (page - 1) * limit
+
+    q = supabase.table("conversations").select("*", count="exact").eq("user_id", id).range(offset, offset + limit - 1)
+
+    if not includeArchived:
+        q = q.eq("is_archived", False)
+
+    if search:
+        q = q.ilike("title", f"%{search}%")
+        
+    res = q.execute()
+    return res.data, res.count
+
 # Get all users
 def get_users():
     response = supabase.table("users").select("*").execute()

@@ -5,11 +5,11 @@ from controllers.auth_ctrl import require_role, assert_owner_or_admin
 
 router = APIRouter()
 
-@router.get("/friends/", response_model=list[friend_schema.FriendResponse])
+@router.get("/", response_model=list[friend_schema.FriendResponse])
 def get_all_friends(current_user = Depends(require_role([0]))):
     return friend_repo.get_friends()
 
-@router.get("/friends/{user_id}", response_model=list[friend_schema.FriendResponse])
+@router.get("/{user_id}", response_model=list[friend_schema.FriendResponse])
 def get_friends(user_id: str, current_user = Depends(require_role([0, 1]))):
     if not user_repo.get_user_by_id(user_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found") 
@@ -21,7 +21,7 @@ def get_friends(user_id: str, current_user = Depends(require_role([0, 1]))):
     
     return response
 
-@router.post("/friends/", response_model=friend_schema.FriendResponse)
+@router.post("/", response_model=friend_schema.FriendResponse)
 def create_new_friend(friend: friend_schema.FriendCreate, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, friend.idself)
     
@@ -43,7 +43,7 @@ def create_new_friend(friend: friend_schema.FriendCreate, current_user = Depends
     # Tạo quan hệ bạn bè
     return friend_repo.create_friend(friend)
 
-@router.put("/friends/", response_model=friend_schema.FriendResponse)
+@router.put("/", response_model=friend_schema.FriendResponse)
 def update_friend(friend: friend_schema.FriendUpdate, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, friend.idself)
     
@@ -66,7 +66,7 @@ def update_friend(friend: friend_schema.FriendUpdate, current_user = Depends(req
     # Tạo quan hệ bạn bè
     return friend_repo.update_friend(friend, relation[0])
 
-@router.delete("/friends", response_model=dict[str, str])
+@router.delete("/", response_model=dict[str, str])
 def delete_friend(id_self: str, id_friend: str, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, id_self)
     

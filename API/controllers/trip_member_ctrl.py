@@ -6,12 +6,12 @@ from controllers.auth_ctrl import require_role, assert_owner_or_admin
 router = APIRouter()
 
 # Get all trip_members
-@router.get("/trip_members/", response_model=list[trip_member_schema.TripMemberResponse])
+@router.get("/all", response_model=list[trip_member_schema.TripMemberResponse])
 def get_trip_members(current_user = Depends(require_role([0]))):
     return trip_member_repo.get_trip_members()
 
 # Get a trip_member by
-@router.get("/trip_members/{select}", response_model=list[trip_member_schema.TripMemberResponse], summary="Get trip_member by idUser, idTrip")
+@router.get("/{select}", response_model=list[trip_member_schema.TripMemberResponse], summary="Get trip_member by idUser, idTrip")
 def get_trip_member_by(select: str, lookup: str, current_user = Depends(require_role([0]))):
     if select == "idUser":
         trip_member = trip_member_repo.get_trip_member_by_user(lookup)
@@ -26,7 +26,7 @@ def get_trip_member_by(select: str, lookup: str, current_user = Depends(require_
     return trip_member
 
 # Get a trip_member by user and trip
-@router.get("/trip_members/full/", response_model=trip_member_schema.TripMemberResponse)
+@router.get("/full", response_model=trip_member_schema.TripMemberResponse)
 def get_trip_member_by_user_trip(idUser: str, idTrip: str, current_user = Depends(require_role([0]))):
     trip_member = trip_member_repo.get_trip_member_by_user_trip(idUser=idUser, idTrip=idTrip)
     if not trip_member:
@@ -35,7 +35,7 @@ def get_trip_member_by_user_trip(idUser: str, idTrip: str, current_user = Depend
     return trip_member[0]
 
 # Post a new trip_member
-@router.post("/trip_members/", response_model=trip_member_schema.TripMemberResponse)
+@router.post("/", response_model=trip_member_schema.TripMemberResponse)
 def create_trip_member(trip_member: trip_member_schema.TripMemberCreate, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, trip_member.iduser)
     
@@ -52,7 +52,7 @@ def create_trip_member(trip_member: trip_member_schema.TripMemberCreate, current
     return trip_member_repo.create_trip_member(trip_member=trip_member)
 
 # Delete a trip_member
-@router.delete("/trip_members", response_model=dict[str, str])
+@router.delete("/", response_model=dict[str, str])
 def delete_trip_member(idUser: str, idTrip: str, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, idUser)
     

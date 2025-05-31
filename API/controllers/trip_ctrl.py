@@ -15,17 +15,17 @@ def assert_owner_or_admin_on_trip(idTrip, current_user):
     return owner_ids
 
 # Post a new trip
-@router.post("/trips/", response_model=trip_schema.TripResponse)
+@router.post("/", response_model=trip_schema.TripResponse)
 def create_trip(trip: trip_schema.TripCreate, current_user = Depends(require_role([0, 1]))):
     return trip_repo.create_trip(trip=trip)
 
 # Get all trips
-@router.get("/trips/", response_model=list[trip_schema.TripResponse])
+@router.get("/all", response_model=list[trip_schema.TripResponse])
 def get_trips(current_user = Depends(require_role([0, 1]))):
     return trip_repo.get_trips()
 
 # Get a trip by id
-@router.get("/trips", response_model=trip_schema.TripResponse)
+@router.get("/{idTrip}", response_model=trip_schema.TripResponse)
 def get_trip_by_id(idTrip: str, current_user = Depends(require_role([0, 1]))):
     trip = trip_repo.get_trip_by_id(idTrip=idTrip)
     if not trip:
@@ -34,7 +34,7 @@ def get_trip_by_id(idTrip: str, current_user = Depends(require_role([0, 1]))):
     return trip[0]
 
 # Get a trip by
-@router.get("/trips/{select}", response_model=list[trip_schema.TripResponse], summary="Get trip by startDate, endDate")
+@router.get("/{select}", response_model=list[trip_schema.TripResponse], summary="Get trip by startDate, endDate")
 def get_trip_by(select: str, lookup: str, current_user = Depends(require_role([0, 1]))):
     if select == "startDate":
         try:
@@ -57,7 +57,7 @@ def get_trip_by(select: str, lookup: str, current_user = Depends(require_role([0
     return trip
 
 # Get trips by date and keyword
-@router.get("/trips/date-key/", response_model=list[trip_schema.TripResponse])
+@router.get("/date-key", response_model=list[trip_schema.TripResponse])
 def get_trips_date_key(start_date: str = None, end_date: str = None, keyword: str = None, current_user = Depends(require_role([0, 1]))):
     if start_date and end_date:
         try:
@@ -78,11 +78,11 @@ def get_trips_date_key(start_date: str = None, end_date: str = None, keyword: st
     return trip
 
 # Get members by trip
-@router.get("/trips/{idTrip}/members/", response_model=list[user_schema.UserResponse])
+@router.get("/{idTrip}/members", response_model=list[user_schema.UserResponse])
 def get_members_by_trip(idTrip: str = None, current_user = Depends(require_role([0, 1]))):
     return trip_repo.get_members_of_trip(idTrip)
 
-@router.get("/trips/{idTrip}/reviewed/", response_model=list[user_schema.UserResponse])
+@router.get("/{idTrip}/reviewed", response_model=list[user_schema.UserResponse])
 def get_users_reviewed_trip(idTrip: str = None, current_user = Depends(require_role([0, 1]))):
     if not trip_repo.get_trip_by_id(idTrip):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
@@ -94,7 +94,7 @@ def get_users_reviewed_trip(idTrip: str = None, current_user = Depends(require_r
 
     return [user_repo.get_user_by_id(user_id)[0] for user_id in user_ids]
 
-@router.get("/trips/{idTrip}/places/", response_model=list[place_schema.PlaceResponse])
+@router.get("/{idTrip}/places", response_model=list[place_schema.PlaceResponse])
 def get_places_of_trip(idTrip: str = None, current_user = Depends(require_role([0, 1]))):
     if not trip_repo.get_trip_by_id(idTrip):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
@@ -107,7 +107,7 @@ def get_places_of_trip(idTrip: str = None, current_user = Depends(require_role([
     return [parse_place(place_repo.get_place_by_id(place_id)[0]) for place_id in place_ids]
 
 # Update a trip
-@router.put("/trips/{idTrip}", response_model=trip_schema.TripResponse)
+@router.put("/{idTrip}", response_model=trip_schema.TripResponse)
 def update_trip(idTrip: str, trip: trip_schema.TripUpdate, current_user = Depends(require_role([0, 1]))):
     if not trip_repo.get_trip_by_id(idTrip):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
@@ -117,7 +117,7 @@ def update_trip(idTrip: str, trip: trip_schema.TripUpdate, current_user = Depend
     return trip_repo.update_trip(idTrip, trip)
 
 # Delete a trip
-@router.delete("/trips/{idTrip}", response_model=dict[str, str])
+@router.delete("/{idTrip}", response_model=dict[str, str])
 def delete_trip(idTrip: str, current_user = Depends(require_role([0, 1]))):
     if not trip_repo.get_trip_by_id(idTrip):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")

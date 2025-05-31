@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks, Query
 from schemas import ai_recommendation_schema, result, place_schema, place_image_schema
 from repositories import ai_recommendation_repo, user_repo, place_repo, place_image_repo
 from controllers.auth_ctrl import require_role, assert_owner_or_admin
@@ -7,12 +7,12 @@ from supabase_client import supabase
 
 router = APIRouter()
 
-@router.get("/ai_recs", response_model=list[ai_recommendation_schema.AIRecResponse])
-def get_ai_recs(current_user = Depends(require_role([0])), skip: int = 0, limit: int = 100):
+@router.get("/", response_model=list[ai_recommendation_schema.AIRecResponse])
+def get_ai_recs(current_user = Depends(require_role([0])), skip: int = Query(0), limit: int = Query(100)):
     
     return ai_recommendation_repo.get_aiRec(skip, limit)
 
-@router.get("/ai_recs/id/{idAIRec}", response_model=ai_recommendation_schema.AIRecResponse)
+@router.get("/id/{idAIRec}", response_model=ai_recommendation_schema.AIRecResponse)
 def get_ai_rec_by_id(idAIRec: str, current_user = Depends(require_role([0, 1]))):
     
     ai_rec = ai_recommendation_repo.get_aiRec_by_id(idAIRec)
@@ -23,8 +23,8 @@ def get_ai_rec_by_id(idAIRec: str, current_user = Depends(require_role([0, 1])))
     
     return ai_rec[0]
 
-@router.get("/ai_recs/{idUser}", response_model=list[ai_recommendation_schema.AIRecResponse])
-def get_ai_rec_by_user(idUser: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100): 
+@router.get("/{idUser}", response_model=list[ai_recommendation_schema.AIRecResponse])
+def get_ai_rec_by_user(idUser: str, current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)): 
     assert_owner_or_admin(current_user, idUser)
     
     if not user_repo.get_user_by_id(idUser):
@@ -36,7 +36,7 @@ def get_ai_rec_by_user(idUser: str, current_user = Depends(require_role([0, 1]))
     
     return response
 
-@router.post("/ai_recs/", response_model=ai_recommendation_schema.AIRecResponse)
+@router.post("/", response_model=ai_recommendation_schema.AIRecResponse)
 def create_ai_rec(ai_rec: ai_recommendation_schema.AIRecCreate, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, ai_rec.iduser)
     
@@ -45,7 +45,7 @@ def create_ai_rec(ai_rec: ai_recommendation_schema.AIRecCreate, current_user = D
     
     return ai_recommendation_repo.create_aiRec(ai_rec)
 
-@router.delete("/ai_recs/{idAIRec}", response_model=dict[str, str])
+@router.delete("/{idAIRec}", response_model=dict[str, str])
 def delete_ai_rec(idAIRec: str, current_user = Depends(require_role([0, 1]))):
     response = ai_recommendation_repo.get_aiRec_by_id(idAIRec)
     if not response:
@@ -55,7 +55,7 @@ def delete_ai_rec(idAIRec: str, current_user = Depends(require_role([0, 1]))):
     
     return ai_recommendation_repo.delete_aiRec(idAIRec)
 
-@router.post("/ai_recs/generate-trip", response_model=result.TripPlan)
+@router.post("/generate-trip", response_model=result.TripPlan)
 async def generate_trip(ai_req: ai_recommendation_schema.AIRequest, background_tasks: BackgroundTasks, current_user = Depends(require_role([0, 1]))):
 
     prompt = f"Lên kế hoạch du lịch {ai_req.days} ngày từ {ai_req.departure} đến {ai_req.destination} cho {ai_req.people} người bắt đầu từ ngày {ai_req.time} với ngân sách là {ai_req.money} đồng"

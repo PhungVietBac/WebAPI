@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from schemas import review_schema
 from repositories import review_repo, user_repo, trip_repo
 from controllers.auth_ctrl import require_role, assert_owner_or_admin
@@ -7,12 +7,12 @@ from controllers.trip_ctrl import assert_owner_or_admin_on_trip
 router = APIRouter()
 
 # Get all reviews
-@router.get("/reviews/all", response_model=list[review_schema.ReviewResponse])
-def get_reviews(current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
+@router.get("/all", response_model=list[review_schema.ReviewResponse])
+def get_reviews(current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)):
     return review_repo.get_reviews(skip, limit)
 
 # Get a review by id
-@router.get("/reviews", response_model=review_schema.ReviewResponse)
+@router.get("/{idReview}", response_model=review_schema.ReviewResponse)
 def get_review_by_id(idReview: str, current_user = Depends(require_role([0, 1]))):
     review = review_repo.get_review_by_id(idReview)
     if not review:
@@ -21,8 +21,8 @@ def get_review_by_id(idReview: str, current_user = Depends(require_role([0, 1]))
     return review[0]
 
 # Get a review by
-@router.get("/reviews/{select}", response_model=list[review_schema.ReviewResponse], summary="Get review by idUser, idTrip, rating")
-def get_review_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
+@router.get("/{select}", response_model=list[review_schema.ReviewResponse], summary="Get review by idUser, idTrip, rating")
+def get_review_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)):
     if select == "idUser":
         review = review_repo.get_review_by_user(lookup, skip, limit)
     elif select == "idTrip":
@@ -42,7 +42,7 @@ def get_review_by(select: str, lookup: str, current_user = Depends(require_role(
     return review
 
 # Get top reviews
-@router.get("/reviews/top/", response_model=list[review_schema.ReviewResponse])
+@router.get("/top", response_model=list[review_schema.ReviewResponse])
 def get_best_reviews(current_user = Depends(require_role([0, 1]))):
     response = review_repo.get_best_reviews()
     
@@ -51,7 +51,7 @@ def get_best_reviews(current_user = Depends(require_role([0, 1]))):
     return response
 
 # Post a new review
-@router.post("/reviews/", response_model=review_schema.ReviewResponse)
+@router.post("/", response_model=review_schema.ReviewResponse)
 def create_review(review: review_schema.ReviewCreate, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, review.iduser)
     assert_owner_or_admin_on_trip(review.idtrip, current_user)
@@ -65,7 +65,7 @@ def create_review(review: review_schema.ReviewCreate, current_user = Depends(req
     return review_repo.create_review(review)
 
 # Delete a review
-@router.delete("/reviews/{idReview}", response_model=dict[str, str])
+@router.delete("/{idReview}", response_model=dict[str, str])
 def delete_review(idReview: str, current_user = Depends(require_role([0, 1]))):
     review = get_review_by_id(idReview)
     if not review:

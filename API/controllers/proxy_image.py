@@ -61,7 +61,7 @@ def start_cache_cleaner(interval_seconds=1800):
     thread = threading.Thread(target=cleaner, daemon=True)
     thread.start()
 
-@router.get("/proxy-image")
+@router.get("/")
 async def proxy_image(url: str = Query(...)):
     clean_old_cache()
     cache_path = get_cache_path(url)

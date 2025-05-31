@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from schemas import detail_information_schema
 from repositories import detail_information_repo, trip_repo, place_repo
 from controllers.auth_ctrl import require_role
@@ -7,12 +7,12 @@ from datetime import datetime
 
 router = APIRouter()
 
-@router.get("/details/all", response_model=list[detail_information_schema.DetailResponse])
-def get_details(current_user = Depends(require_role([0])), skip: int = 0, limit: int = 100):
+@router.get("/all", response_model=list[detail_information_schema.DetailResponse])
+def get_details(current_user = Depends(require_role([0])), skip: int = Query(0), limit: int = Query(100)):
     
     return detail_information_repo.get_details(skip, limit)
 
-@router.get("/details", response_model=detail_information_schema.DetailResponse)
+@router.get("/", response_model=detail_information_schema.DetailResponse)
 def get_detail_by_id(idDetail: str, current_user = Depends(require_role([0, 1]))):
     
     detail = detail_information_repo.get_detail_information_by_id(idDetail)
@@ -23,8 +23,8 @@ def get_detail_by_id(idDetail: str, current_user = Depends(require_role([0, 1]))
     
     return detail[0]
 
-@router.get("/details/{select}", response_model=list[detail_information_schema.DetailResponse], summary="Get detail information by idPlace, idTrip, startTime, endTime")
-def get_detail_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
+@router.get("/{select}", response_model=list[detail_information_schema.DetailResponse], summary="Get detail information by idPlace, idTrip, startTime, endTime")
+def get_detail_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)):
     if select == "idPlace":
         details = detail_information_repo.get_detail_by_idPlace(lookup, skip, limit)
     elif select == "idTrip":
@@ -55,7 +55,7 @@ def get_detail_by(select: str, lookup: str, current_user = Depends(require_role(
     
     return details
 
-@router.post("/details/", response_model=detail_information_schema.DetailResponse)
+@router.post("/", response_model=detail_information_schema.DetailResponse)
 def create_detail(detail: detail_information_schema.DetailCreate, current_user = Depends(require_role([0, 1]))):
     if not trip_repo.get_trip_by_id(detail.idtrip):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trip not found")
@@ -67,7 +67,7 @@ def create_detail(detail: detail_information_schema.DetailCreate, current_user =
     
     return detail_information_repo.post_detail_information(detail)
 
-@router.put("/details/{idDetail}", response_model=detail_information_schema.DetailResponse)
+@router.put("/{idDetail}", response_model=detail_information_schema.DetailResponse)
 def update_detail(idDetail: str, detail: detail_information_schema.DetailUpdate, current_user = Depends(require_role([0, 1]))):
     response = detail_information_repo.get_detail_information_by_id(idDetail)
     if not response:
@@ -85,7 +85,7 @@ def update_detail(idDetail: str, detail: detail_information_schema.DetailUpdate,
     
     return detail_information_repo.update_detail_information(idDetail, detail)
 
-@router.delete("/details/{idDetail}", response_model=dict[str, str])
+@router.delete("/{idDetail}", response_model=dict[str, str])
 def delete_detail(idDetail: str, current_user = Depends(require_role([0, 1]))):
     response = detail_information_repo.get_detail_information_by_id(idDetail)
     if not response:

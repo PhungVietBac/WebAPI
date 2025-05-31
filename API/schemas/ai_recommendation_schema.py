@@ -21,7 +21,7 @@ class AIRequest(BaseModel):
     time: str
     days: int
     people: int
-    money: int
+    money: str
     transportation: str = None
     travelStyle: str = None
     interests: list[str] = None

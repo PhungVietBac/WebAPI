@@ -10,7 +10,7 @@ import uuid
 router = APIRouter()
 
 # Config security with OAuth2
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 # API register user
 @router.post("/register")

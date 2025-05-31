@@ -1,15 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from schemas import place_review_schema
 from repositories import place_review_repo, place_repo, user_repo
 from controllers.auth_ctrl import require_role
 
 router = APIRouter()
 
-@router.get("/placereviews/all", response_model=list[place_review_schema.PlaceReviewResponse])
-def get_place_reviews(current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
+@router.get("/all", response_model=list[place_review_schema.PlaceReviewResponse])
+def get_place_reviews(current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)):
     return place_review_repo.get_place_reviews(skip, limit)
 
-@router.get("/placereviews", response_model=place_review_schema.PlaceReviewResponse)
+@router.get("/{idReview}", response_model=place_review_schema.PlaceReviewResponse)
 def get_place_review_by_id(idReview: str, current_user = Depends(require_role([0, 1]))):
     review = place_review_repo.get_place_review_by_id(idReview)
     if not review:
@@ -17,8 +17,8 @@ def get_place_review_by_id(idReview: str, current_user = Depends(require_role([0
     
     return review[0]
 
-@router.get("/placereviews/{select}", response_model=list[place_review_schema.PlaceReviewResponse], summary="Get place review by name, idPlace, rating")
-def get_place_review_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
+@router.get("/{select}", response_model=list[place_review_schema.PlaceReviewResponse], summary="Get place review by name, idPlace, rating")
+def get_place_review_by(select: str, lookup: str, current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)):
     if select == "name":
         review = place_review_repo.get_place_review_by_name(lookup, skip, limit)
     elif select == "idPlace":
@@ -38,7 +38,7 @@ def get_place_review_by(select: str, lookup: str, current_user = Depends(require
     return review
 
 # Get top reviews
-@router.get("/placereviews/top/", response_model=list[place_review_schema.PlaceReviewResponse])
+@router.get("/top", response_model=list[place_review_schema.PlaceReviewResponse])
 def get_best_place_reviews(current_user = Depends(require_role([0, 1]))):
     response = place_review_repo.get_best_place_reviews()
 
@@ -47,7 +47,7 @@ def get_best_place_reviews(current_user = Depends(require_role([0, 1]))):
     return response
 
 # Post a new review
-@router.post("/placereviews/", response_model=place_review_schema.PlaceReviewResponse)
+@router.post("/", response_model=place_review_schema.PlaceReviewResponse)
 def create_place_review(placeReview: place_review_schema.PlaceReviewCreate, current_user = Depends(require_role([0, 1]))):
     if not place_repo.get_place_by_id(placeReview.idplace):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Place not found")
@@ -55,7 +55,7 @@ def create_place_review(placeReview: place_review_schema.PlaceReviewCreate, curr
     return place_review_repo.create_place_review(placeReview)
 
 # Delete a review
-@router.delete("/placereviews/{idReview}", response_model=dict[str, str])
+@router.delete("/{idReview}", response_model=dict[str, str])
 def delete_place_review(idReview: str, current_user = Depends(require_role([0, 1]))):
     review = place_review_repo.get_place_review_by_id(idReview)
     

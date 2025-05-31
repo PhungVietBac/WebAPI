@@ -5,11 +5,11 @@ from controllers.auth_ctrl import require_role, assert_owner_or_admin
 
 router = APIRouter()
 
-@router.get("/detail_bookings/", response_model=list[detail_booking_schema.DetailBookingResponse])
+@router.get("/", response_model=list[detail_booking_schema.DetailBookingResponse])
 def get_detail_bookings(current_user = Depends(require_role([0]))):
     return detail_booking_repo.get_detail_bookings()
 
-@router.get("detail_bookings/{select}", response_model=list[detail_booking_schema.DetailBookingResponse], summary="Get detail booking by idUser, idBooking")
+@router.get("/{select}", response_model=list[detail_booking_schema.DetailBookingResponse], summary="Get detail booking by idUser, idBooking")
 def get_detail_booking_by(select: str, lookup: str, current_user = Depends(require_role([0]))):
     if select == "idUser":
         detail_booking = detail_booking_repo.get_detail_booking_by_user(lookup)
@@ -23,7 +23,7 @@ def get_detail_booking_by(select: str, lookup: str, current_user = Depends(requi
     
     return detail_booking
 
-@router.get("/detail_bookings/full", response_model=detail_booking_schema.DetailBookingResponse)
+@router.get("/full", response_model=detail_booking_schema.DetailBookingResponse)
 def get_detail_booking_by_user_booking(idUser: str, idBooking: str, current_user = Depends(require_role([0]))):
     detail_booking = detail_booking_repo.get_detail_booking_by_user_booking(idUser=idUser, idBooking=idBooking)
     if not detail_booking:
@@ -31,7 +31,7 @@ def get_detail_booking_by_user_booking(idUser: str, idBooking: str, current_user
     
     return detail_booking[0]
 
-@router.post("/detail_bookings/", response_model=detail_booking_schema.DetailBookingResponse)
+@router.post("/", response_model=detail_booking_schema.DetailBookingResponse)
 def create_detail_booking(detail_booking: detail_booking_schema.DetailBookingCreate, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, detail_booking.iduser)
     # Check if the user exists
@@ -46,7 +46,7 @@ def create_detail_booking(detail_booking: detail_booking_schema.DetailBookingCre
     
     return detail_booking_repo.create_detail_booking(detail_booking)
 
-@router.delete("/detail_bookings", response_model=dict[str, str])
+@router.delete("/", response_model=dict[str, str])
 def delete_detail_booking(idUser: str, idBooking: str, current_user = Depends(require_role([0, 1]))):
     assert_owner_or_admin(current_user, idUser)
 
