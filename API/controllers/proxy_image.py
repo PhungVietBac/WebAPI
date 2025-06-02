@@ -63,29 +63,58 @@ def start_cache_cleaner(interval_seconds=1800):
 
 @router.get("/")
 async def proxy_image(url: str = Query(...)):
-    clean_old_cache()
     cache_path = get_cache_path(url)
-    
+    meta_path = cache_path + ".meta"
+
+    # Serve cached
     if os.path.exists(cache_path):
         with open(cache_path, "rb") as f:
             content = f.read()
-        return Response(
-            content=content,
-            media_type="image/jpeg",
-            headers={"Cache-Control": "public, max-age=86400"}
-        )
-        
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url)
-        content = resp.content
-        
-        with open(cache_path, "wb") as f:
-            f.write(content)
-        
-        content_type = resp.headers.get("Content-Type", "image/jpeg")
-        
-        return Response(
-            content=content,
-            media_type=content_type,
-            headers={"Cache-Control": "public, max-age=86400"}
-        )
+        content_type = "image/jpeg"
+        if os.path.exists(meta_path):
+            with open(meta_path, "r") as f:
+                content_type = f.read().strip()
+        return Response(content=content, media_type=content_type)
+
+    async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
+        try:
+            # First try: download whole image into memory
+            resp = await client.get(url)
+            if resp.status_code != 200:
+                return Response(status_code=resp.status_code)
+
+            content_type = resp.headers.get("Content-Type", "image/jpeg")
+            try:
+                content = await resp.aread()
+            except Exception as e:
+                print("⚠️ aread() failed:", e)
+                raise e  # fallback to stream below
+
+            with open(cache_path, "wb") as f:
+                f.write(content)
+            with open(meta_path, "w") as f:
+                f.write(content_type)
+
+            return Response(content=content, media_type=content_type)
+
+        except Exception as e1:
+            # Fallback: stream content if full read fails
+            print("🔁 Fallback to stream due to:", e1)
+            try:
+                async with client.stream("GET", url) as resp:
+                    if resp.status_code != 200:
+                        return Response(status_code=resp.status_code)
+
+                    content_type = resp.headers.get("Content-Type", "image/jpeg")
+                    with open(cache_path, "wb") as f:
+                        async for chunk in resp.aiter_bytes():
+                            f.write(chunk)
+
+                    with open(meta_path, "w") as f:
+                        f.write(content_type)
+
+                with open(cache_path, "rb") as f:
+                    return Response(content=f.read(), media_type=content_type)
+            except Exception as e2:
+                print("❌ Proxy error (stream fallback):", e2)
+                return Response(status_code=502, content="Download failed")

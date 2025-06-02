@@ -18,7 +18,7 @@ def get_place_image_by_id(idImage: str, current_user = Depends(require_role([0, 
     
     return image[0]
 
-@router.get("/{idPlace}", response_model=list[place_image_schema.PlaceImageResponse])
+@router.get("/places/{idPlace}", response_model=list[place_image_schema.PlaceImageResponse])
 def get_place_image_by_place(idPlace: str, current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)):
     image = place_image_repo.get_place_image_by_idPlace(idPlace, skip, limit)
     if not image:

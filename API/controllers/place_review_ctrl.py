@@ -9,7 +9,7 @@ router = APIRouter()
 def get_place_reviews(current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)):
     return place_review_repo.get_place_reviews(skip, limit)
 
-@router.get("/{idReview}", response_model=place_review_schema.PlaceReviewResponse)
+@router.get("/id/{idReview}", response_model=place_review_schema.PlaceReviewResponse)
 def get_place_review_by_id(idReview: str, current_user = Depends(require_role([0, 1]))):
     review = place_review_repo.get_place_review_by_id(idReview)
     if not review:
