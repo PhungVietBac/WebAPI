@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from schemas import place_schema, booking_schema, trip_schema
 from controllers.auth_ctrl import require_role
 from repositories import place_repo, trip_repo
@@ -48,7 +48,7 @@ def parse_response(res):
     return result
 
 @router.get("/all", response_model=list[place_schema.PlaceResponse])
-def get_places(current_user = Depends(require_role([0, 1])), skip: int = 0, limit: int = 100):
+def get_places(current_user = Depends(require_role([0, 1])), skip: int = Query(0), limit: int = Query(100)):
     res = place_repo.get_places(skip, limit)
     
     return parse_response(res)
@@ -72,7 +72,7 @@ def get_bookings_by_place(idPlace: str, current_user = Depends(require_role([0])
     
     return response
 
-@router.get("/{name}", response_model=place_schema.PlaceResponse)
+@router.get("/name", response_model=place_schema.PlaceResponse)
 def get_place_by(name: str, current_user = Depends(require_role([0, 1]))):
     places = place_repo.get_place_by_name(name)
     

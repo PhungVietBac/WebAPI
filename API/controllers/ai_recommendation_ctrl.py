@@ -67,6 +67,7 @@ async def generate_trip(ai_req: ai_recommendation_schema.AIRequest, background_t
         prompt += f" với sở thích {', '.join(ai_req.interests)},"
     if ai_req.accommodation:
         prompt += f" với chỗ ở {ai_req.accommodation},"
+    prompt += " số hoạt động mỗi ngày có thể khác nhau, nhưng phải lớn hơn 3."
     try:
         trip_plan = get_trip_plan(prompt)
         background_tasks.add_task(save_place, trip_plan)
@@ -100,10 +101,10 @@ async def save_place(trip: result.TripPlan):
                 lon=lon
             )
             res = place_repo.post_place(place)
-            save_place_image(res['idplace'], activity.namePlace)
+            save_place_image(res['idplace'], lat, lon, activity.namePlace)
             
-def save_place_image(idplace, name):
-    images = find_images(name)
+def save_place_image(idplace, lat, lon, name):
+    images = find_images(lat, lon, name)
     if images:
         for image in images: 
             placeImage = place_image_schema.PlaceImageCreate(
@@ -112,11 +113,85 @@ def save_place_image(idplace, name):
             )
             place_image_repo.create_place_image(placeImage)
     
-def find_images(query: str):
+def find_images(lat, lon, query):
+    import requests
+    from math import radians, cos, sin, asin, sqrt
+    from dotenv import load_dotenv
+    import os
+
+    res = []
+    load_dotenv()
+    API_KEY = os.getenv("GOOGLE_PLACES_API_KEY")
+
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon/2)**2
+        return 2 * R * asin(sqrt(a))
+
+    # Tìm địa điểm gần nhất
+    nearby_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
+    params = {
+        'location': f'{lat},{lon}',
+        'radius':30,
+        'key': API_KEY
+    }
+    resp = requests.get(nearby_url, params=params).json()
+    places = resp.get('results', [])
+
+    if not places:
+        print("❌ Không có địa điểm nào gần tọa độ này.")
+        return find_image_by_openverse(query)
+    else:
+        closest = min(places, key=lambda p: haversine(
+            lat, lon,
+            p['geometry']['location']['lat'],
+            p['geometry']['location']['lng']
+        ))
+        name = closest['name']
+        place_id = closest['place_id']
+        print(f"📍 Gần nhất: {name} ({place_id})")
+
+        # Lấy ảnh từ place_id
+        detail_url = 'https://maps.googleapis.com/maps/api/place/details/json'
+        detail_params = {
+            'place_id': place_id,
+            'fields': 'photos',
+            'key': API_KEY
+        }
+        detail_resp = requests.get(detail_url, params=detail_params).json()
+        photos = detail_resp.get('result', {}).get('photos', [])
+
+        if not photos:
+            print("⚠️ Không có ảnh nào cho địa điểm này.")
+            return find_image_by_openverse(query)
+        else:
+            for photo in photos:
+                ref = photo.get('photo_reference')
+                photo_url = (
+                    f"https://maps.googleapis.com/maps/api/place/photo"
+                    f"?maxwidth=600&photo_reference={ref}&key={API_KEY}"
+                )
+                # Kiểm tra URL ảnh
+                check = requests.get(photo_url)
+                if check.status_code == 200:
+                    res.append(photo_url)
+                else:
+                    print(f"⚠️ Ảnh lỗi HTTP {check.status_code}, bỏ qua.")
+                    
+                if len(res) == 5:
+                    break
+                
+            if len(res) == 0:
+                return find_image_by_openverse(query)
+            return res
+    
+def find_image_by_openverse(query):
     import requests
     res = []
     url = f'https://api.openverse.engineering/v1/images?q={query}&page=1&format=json'
-    
+        
     try:
         response = requests.get(url)
         if response.status_code == 200:
