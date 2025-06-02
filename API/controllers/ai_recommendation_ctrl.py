@@ -67,6 +67,7 @@ async def generate_trip(ai_req: ai_recommendation_schema.AIRequest, background_t
         prompt += f" với sở thích {', '.join(ai_req.interests)},"
     if ai_req.accommodation:
         prompt += f" với chỗ ở {ai_req.accommodation},"
+    prompt += " số hoạt động mỗi ngày có thể khác nhau, nhưng phải lớn hơn 3."
     try:
         trip_plan = get_trip_plan(prompt)
         background_tasks.add_task(save_place, trip_plan)
