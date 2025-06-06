@@ -72,7 +72,7 @@ def get_bookings_by_place(idPlace: str, current_user = Depends(require_role([0])
     
     return response
 
-@router.get("/{name}", response_model=place_schema.PlaceResponse)
+@router.get("/name", response_model=place_schema.PlaceResponse)
 def get_place_by(name: str, current_user = Depends(require_role([0, 1]))):
     places = place_repo.get_place_by_name(name)
     
